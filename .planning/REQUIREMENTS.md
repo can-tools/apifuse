@@ -104,4 +104,4 @@
 
 ---
 *Requirements defined: 2026-05-12*
-*Last updated: 2026-05-12 after initial definition from docs/plan.md*
+*Last updated: 2026-05-12 — traceability confirmed against ROADMAP.md*
