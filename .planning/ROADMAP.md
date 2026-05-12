@@ -33,7 +33,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Settings load from `.env` via pydantic-settings; missing required vars raise a descriptive startup error
 **Deferred to v2** (not approved for this phase):
   - `APIResponse` and `ErrorResponse` base models (MOD-01, MOD-02) — unified response envelope
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Wave 0: Test infrastructure (pyproject.toml pytest config, tests/__init__.py, conftest.py, stub test files)
+- [ ] 01-02-PLAN.md — Wave 1: Package init files + ApifuseSettings config module (FOUND-01)
+- [ ] 01-03-PLAN.md — Wave 2: configure_logging() with structlog processor chain, dev/prod renderer switching (FOUND-02)
+- [ ] 01-04-PLAN.md — Wave 2: ErrorHandlingMiddleware pure ASGI class with D-07/D-08 error envelope (FOUND-03 partial)
+- [ ] 01-05-PLAN.md — Wave 3: main.py rewrite — FastAPI app, lifespan, middleware stack, integration tests (FOUND-03 complete)
 
 ### Phase 2: Provider System
 **Goal**: Providers can be declared in YAML, autodiscovered at startup, and invoked via a central registry
@@ -104,7 +111,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/5 | Not started | - |
 | 2. Provider System | 0/TBD | Not started | - |
 | 3. Dynamic Router | 0/TBD | Not started | - |
 | 4. Production Providers | 0/TBD | Not started | - |
