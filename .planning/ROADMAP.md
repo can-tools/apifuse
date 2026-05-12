@@ -28,9 +28,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Success Criteria** (what must be TRUE):
   1. `uvicorn main:app` starts without errors and serves requests
   2. All imports use `apifuse_` prefix; zero `print()` calls exist in the codebase
-  3. Structured JSON log lines appear in the console for every request (structlog)
+  3. Structured JSON log lines appear in the console for application lifecycle events (startup, shutdown) via structlog — per-request access logging middleware is deferred to Phase 2 (aligns with RESEARCH.md Open Question 1)
   4. CORS and error-handling middleware intercept malformed requests and return JSON error responses
-  5. Settings load from `.env` via pydantic-settings; missing required vars raise a descriptive startup error
+  5. Settings load via pydantic-settings with an optional `.env` file; **no env vars are required** in Phase 1 — defaults apply when `.env` is absent (aligns with CONTEXT D-03/D-04; a future phase may introduce required secrets)
 **Deferred to v2** (not approved for this phase):
   - `APIResponse` and `ErrorResponse` base models (MOD-01, MOD-02) — unified response envelope
 **Plans**: 5 plans

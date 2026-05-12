@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Build the FastAPI application skeleton: app instantiation, middleware stack (CORS + error handling), structured logging configuration via structlog, and pydantic-settings-based environment config. This is the infrastructure layer every subsequent phase depends on. No provider logic, no dynamic routing, no test suite.
+Build the FastAPI application skeleton: app instantiation, middleware stack (CORS + error handling), structured logging configuration via structlog, and pydantic-settings-based environment config. This is the infrastructure layer every subsequent phase depends on. No provider logic, no dynamic routing. **Wave 0** adds a minimal pytest harness and stubs for FOUND-* only (not the full v2 TEST-01/02/03 program).
 
 </domain>
 

@@ -418,7 +418,7 @@ verified against Context7 official docs and are production-ready. Do not invent 
 
 ## Metadata
 
-**Analog search scope:** `/c/Workspace/cursor/apifuse/**` — full repository
+**Analog search scope:** repository root (`./**`) — full tree
 **Files scanned:** `main.py` (6 lines), `pyproject.toml` (23 lines), `.planning/codebase/CONVENTIONS.md`, `.planning/codebase/ARCHITECTURE.md`, `.planning/phases/01-foundation/01-CONTEXT.md`, `.planning/phases/01-foundation/01-RESEARCH.md`
 **Pattern extraction date:** 2026-05-12
 **Source confidence:** HIGH — all patterns sourced from Context7-verified RESEARCH.md examples

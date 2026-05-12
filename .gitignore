@@ -216,3 +216,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local AI/IDE tooling and bundled GSD trees (repo root only)
+# Note: ignoring /.github/ excludes GitHub Actions, issue templates, etc.
+/.agent/
+/.claude/
+/.cursor/
+/.github/
+/agents/
+/get-shit-done/

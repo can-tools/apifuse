@@ -1,7 +1,8 @@
 # Phase 1: Foundation - Research
 
-**Researched:** 2026-05-12
-**Domain:** FastAPI skeleton — structlog, pydantic-settings, middleware stack
+**Researched:** 2026-05-12  
+**Refreshed (forced `--research`):** 2026-05-12 — `$gsd-plan-phase 1 --research`: live tree snapshot, `pyproject.toml` dev group (incl. pytest-playwright), ROADMAP vs CONTEXT settings + test-scope alignment  
+**Domain:** FastAPI skeleton — structlog, pydantic-settings, middleware stack  
 **Confidence:** HIGH
 
 ---
@@ -32,7 +33,8 @@
 - Authentication / authorization middleware — explicitly out of scope for v1
 - Rate limiting — out of scope for v1
 - `APIResponse` / `ErrorResponse` base models (MOD-01, MOD-02) — deferred to v2
-- pytest suite (TEST-01/02/03) — deferred to v2 per ROADMAP.md
+- **Full** pytest program (TEST-01, TEST-02, TEST-03 as defined in REQUIREMENTS.md — shared fixtures across *all* Phase 2+ domains, broad unit/integration coverage) — deferred to **v2**  
+- **Note:** Phase **1** still adds a **minimal Wave 0** pytest harness + per-area tests for FOUND-01/02/03 per ROADMAP/plans; that is *not* the same scope as TEST-01/02/03.
 </user_constraints>
 
 ---
@@ -46,6 +48,28 @@
 | FOUND-02 | Structured logging via structlog — zero `print()` calls enforced, uniform `apifuse_` prefix | Full structlog processor chain + uvicorn bridging pattern documented. `apifuse_` prefix scoped to event names and module-level identifiers. |
 | FOUND-03 | FastAPI application with lifespan startup/shutdown, CORSMiddleware, and ErrorHandlingMiddleware | FastAPI lifespan pattern (asynccontextmanager), CORS ordering, exception-safe middleware pattern documented. |
 </phase_requirements>
+
+---
+
+## Repository snapshot (`$gsd-plan-phase 1 --research`)
+
+**Checked:** 2026-05-12 (orchestrated refresh; no `uv` in agent shell PATH — re-validate locally with `uv sync` / `uv run`).
+
+| Observation | Detail |
+|---------------|--------|
+| `app/` tree | **Absent** — no `app/core/*.py` on disk yet |
+| `main.py` | Stub only — still contains `print()`, which violates FOUND-02 until Wave 3 rewrite |
+| `pyproject.toml` | Dev group: `pytest`, `pytest-asyncio`, `pytest-playwright` — Phase 1 Wave 0 exercise uses pytest + asyncio only; Playwright is optional future |
+| Lockfile | `uv.lock` expected to pin resolves; versions in *Standard Stack* tables follow `pyproject.toml` constraints |
+
+---
+
+## Documentation drift (reconcile before verify)
+
+| Topic | Artifact A | Artifact B | Recommendation |
+|-------|------------|------------|----------------|
+| Required env vars | `CONTEXT.md` D-03/D-04 — no required vars, start without `.env` | `ROADMAP.md` Phase 1 success criterion **5** — “missing required vars raise a descriptive startup error” | **Treat CONTEXT as authoritative for Phase 1.** Amend ROADMAP criterion 5 to describe optional `.env` + all-defaults startup, or criterion 5 is unverifiable as written. |
+| Test scope | `CONTEXT.md` phase boundary line (“no test suite”) | `ROADMAP.md` / Wave 0 — pytest harness + FOUND tests | **Treat ROADMAP + plans as authoritative.** Trim CONTEXT boundary language so it does not deny Wave 0 tests. |
 
 ---
 
@@ -86,15 +110,18 @@ The `ErrorHandlingMiddleware` must be implemented as a pure ASGI middleware (not
 | uvicorn | 0.46.0 | ASGI server | Already installed |
 | python-dotenv | 1.2.2 | `.env` file loading (used by pydantic-settings) | Already installed |
 | pydantic | 2.13.4 | Data validation (transitive dep of FastAPI + settings) | Already installed |
+| httpx | ≥0.28.1 | Async HTTP client (providers / tests) | Declared in `[project]` + dev |
+| PyYAML | ≥6.0.3 | YAML (later provider configs) | Declared in `[project]` |
 
-**Version verification:** All versions confirmed via `uv run python -c "import X; print(X.__version__)"` against the active virtual environment. [VERIFIED: uv.lock]
+**Version verification:** Pinned resolves live in `uv.lock`. Confirm with `uv run python -c "import X; print(X.__version__)"` from the repo root on your machine (`uv` absent in CI/WSL snapshots does not change declared constraints). [SOURCE: pyproject.toml + uv.lock]
 
 ### Supporting (dev-only)
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| pytest | 9.0.3 | Test runner | Phase 2+ (TEST-01 deferred) |
-| pytest-asyncio | 1.3.0 | Async test support | Phase 2+ |
+| pytest | ≥9.0.3 | Test runner | Phase 1 Wave 0 stubs + FOUND tests; broad TEST-01 program still v2 |
+| pytest-asyncio | ≥1.3.0 | Async fixtures / httpx.AsyncClient | Phase 1 Wave 0 (`asyncio_mode=auto`) |
+| pytest-playwright | ≥0.7.2 | Browser E2E (optional future) | Dev group — not Phase 1 gate |
 
 ### Alternatives Considered
 
@@ -144,7 +171,7 @@ app/
 │   ├── __init__.py
 │   ├── config.py        # ApifuseSettings(BaseSettings)
 │   ├── logging.py       # configure_logging(), apifuse_get_logger()
-│   └── exceptions.py    # ErrorHandlingMiddleware, ApifuseError base
+│   └── exceptions.py    # ErrorHandlingMiddleware (Phase 1 — no separate ApifuseError hierarchy)
 main.py                  # FastAPI app, lifespan, middleware registration
 ```
 
@@ -539,8 +566,8 @@ class ApifuseSettings(BaseSettings):
 1. **Should Phase 1 include a per-request logging middleware?**
    - What we know: The structlog contextvars pattern supports per-request binding (`request_id`, `method`, `path`)
    - What's unclear: CONTEXT.md doesn't mention it; success criteria don't require `request_id` in logs
-   - Recommendation: Include a minimal `@app.middleware("http")` that calls `clear_contextvars()` + `bind_contextvars(request_id=uuid4())` to unblock Phase 2+ logging — adds ~10 lines, no dependencies
-   - **RESOLVED: Not included in Phase 1** — success criteria do not require `request_id` in logs; can be added in Phase 2 when provider logging context is needed.
+   - Recommendation (historical): A minimal request middleware was *optional*; **not adopted** for Phase 1.
+   - **RESOLVED: Not included in Phase 1** — ROADMAP success criterion 3 targets **lifecycle** structured logs; per-request `request_id` middleware deferred to Phase 2+.
 
 2. **Should `ApifuseSettings` be a module-level singleton or instantiated via `Depends()`?**
    - What we know: Claude's Discretion allows either; singleton is simpler for Phase 1
@@ -562,7 +589,7 @@ class ApifuseSettings(BaseSettings):
 | uvicorn | ASGI server | ✓ | 0.46.0 | — |
 | python-dotenv | .env loading | ✓ | 1.2.2 | — |
 
-All dependencies present. No missing items. [VERIFIED: uv run python -c "import X; print(X.__version__)"]
+All dependencies present per `pyproject.toml`. Re-validate versions in your checkout with `uv sync` then `uv run python -c "import …"`.
 
 ---
 
@@ -581,13 +608,14 @@ All dependencies present. No missing items. [VERIFIED: uv run python -c "import 
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| FOUND-01 | Settings load with zero env vars; `app_env` defaults to "development" | unit | `uv run pytest tests/test_config.py -x` | ❌ Wave 0 |
-| FOUND-01 | `.env` file absent → no ValidationError | unit | `uv run pytest tests/test_config.py::test_no_env_file -x` | ❌ Wave 0 |
-| FOUND-02 | No `print()` call anywhere in `app/` or `main.py` | static (grep) | `grep -r "print(" app/ main.py` → exit 1 if any found | ❌ Wave 0 |
-| FOUND-02 | structlog emits JSON when `APP_ENV=production` | unit | `uv run pytest tests/test_logging.py -x` | ❌ Wave 0 |
-| FOUND-03 | `uvicorn main:app` starts without errors | smoke | `uv run uvicorn main:app --port 8765 &; sleep 1; curl -s http://localhost:8765/` | ❌ Wave 0 |
-| FOUND-03 | Unknown route returns JSON error envelope `{"error":..., "status_code":404}` | integration | `uv run pytest tests/test_app.py::test_error_envelope -x` | ❌ Wave 0 |
-| FOUND-03 | CORS headers present on `OPTIONS /` | integration | `uv run pytest tests/test_app.py::test_cors_headers -x` | ❌ Wave 0 |
+| FOUND-01 | Settings load with zero env vars; `app_env` defaults to "development" | unit | `uv run pytest tests/test_config.py -x` | Plan 02 / Wave 0 stubs |
+| FOUND-01 | `.env` file absent → no ValidationError | unit | included in config tests (`test_settings_load_with_no_env_file`) | Plan 02 |
+| FOUND-02 | No `print()` call anywhere in `app/` or `main.py` | static (pathlib scan in tests — Windows-portable) | `uv run pytest tests/test_logging.py::test_no_print_calls_in_source -x` | Plan 03 / Wave 0 |
+| FOUND-02 | structlog configured; production path uses JSONRenderer | unit | `uv run pytest tests/test_logging.py -x` | Plan 03 |
+| FOUND-03 | `uvicorn main:app` starts without errors | smoke | manual or script in Plan 05 verification | Plan 05 |
+| FOUND-03 | Unknown route returns JSON error envelope | integration | `uv run pytest tests/test_app.py::test_unknown_route_returns_json_error_envelope -x` | Plan 05 |
+| FOUND-03 | CORS headers present on `OPTIONS /` | integration | `uv run pytest tests/test_app.py::test_cors_headers_on_options_request -x` | Plan 05 |
+| FOUND-03 | `FastAPI(version=…)` wired to settings | integration | `uv run pytest tests/test_app.py::test_openapi_json_version_matches_settings -x` | Plan 05 |
 
 ### Sampling Rate
 
@@ -598,7 +626,7 @@ All dependencies present. No missing items. [VERIFIED: uv run python -c "import 
 ### Wave 0 Gaps
 
 - [ ] `tests/__init__.py` — package marker
-- [ ] `tests/conftest.py` — shared `TestClient` fixture using `httpx.AsyncClient(app=app, base_url="http://test")`
+- [ ] `tests/conftest.py` — shared **`httpx.AsyncClient`** + **`ASGITransport(app=app)`** fixture (`asyncio_mode=auto`)
 - [ ] `tests/test_config.py` — covers FOUND-01
 - [ ] `tests/test_logging.py` — covers FOUND-02
 - [ ] `tests/test_app.py` — covers FOUND-03 (CORS headers, error envelope, smoke start)
@@ -610,7 +638,7 @@ All dependencies present. No missing items. [VERIFIED: uv run python -c "import 
 
 | Directive | Applies To | Enforcement Point |
 |-----------|-----------|-------------------|
-| Zero `print()` calls — use `structlog` exclusively | All source files in `app/` and `main.py` | FOUND-02 requirement; grep check in Wave 0 tests |
+| Zero `print()` calls — use `structlog` exclusively | All source files in `app/` and `main.py` | FOUND-02; `test_no_print_calls_in_source` (pathlib) |
 | `apifuse_` prefix — uniform naming on all internal identifiers | Log event names; module-level public names | CONVENTIONS.md; code review |
 | No dead code — no unused imports, variables, or commented-out blocks | All files written in Phase 1 | Code review per task |
 | Single `conftest.py` — shared fixtures only, no duplication | `tests/conftest.py` | Test Wave 0 setup |
@@ -650,7 +678,7 @@ All dependencies present. No missing items. [VERIFIED: uv run python -c "import 
 - Context7 `/hynek/structlog` — processor chain, ConsoleRenderer, JSONRenderer, ProcessorFormatter, make_filtering_bound_logger, contextvars patterns
 - Context7 `/pydantic/pydantic-settings` — BaseSettings, model_config, env_file, extra="ignore", optional fields with defaults
 - Context7 `/fastapi/fastapi` — lifespan asynccontextmanager, CORSMiddleware, add_middleware ordering, exception_handler decorator
-- `pyproject.toml` + `uv run python -c "..."` — all installed package versions verified in active venv
+- `pyproject.toml` + `uv.lock` — declared versions; confirm with `uv run python -c "..."` after `uv sync` on your machine
 
 ### Secondary (MEDIUM confidence)
 
@@ -666,9 +694,15 @@ All dependencies present. No missing items. [VERIFIED: uv run python -c "import 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — all versions verified against active virtual environment
+- Standard stack: HIGH — versions trace to `pyproject.toml` / `uv.lock`; runtime check with `uv run` when available
 - Architecture: HIGH — verified against Context7 official docs for all three libraries
 - Pitfalls: MEDIUM-HIGH — processor chain pitfalls verified; middleware ordering verified; some pitfalls from community patterns cross-checked with official docs
 
-**Research date:** 2026-05-12
+**Research date:** 2026-05-12 (initial + forced refreshes via `$gsd-plan-phase 1 --research`, documented in header)
 **Valid until:** 2026-06-12 (stable libraries; structlog and pydantic-settings have slow-moving APIs)
+
+---
+
+## RESEARCH COMPLETE
+
+Planning may proceed; downstream agents should reconcile any drift with `@./.planning/phases/01-foundation/01-*-PLAN.md` and current `pyproject.toml`.

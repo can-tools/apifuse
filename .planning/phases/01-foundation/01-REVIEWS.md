@@ -1,7 +1,7 @@
 ---
 phase: 1
-reviewers: [claude-self]
-reviewed_at: 2026-05-12T11:57:13Z
+reviewers: [claude-self, composer-supplemental]
+reviewed_at: 2026-05-12T14:39:26Z
 plans_reviewed:
   - 01-01-PLAN.md
   - 01-02-PLAN.md
@@ -9,19 +9,16 @@ plans_reviewed:
   - 01-04-PLAN.md
   - 01-05-PLAN.md
 reviewer_note: >
-  Gemini was detected as available but GEMINI_API_KEY is not configured.
-  Cursor is an IDE binary without agent-mode pipe support.
-  No independent external CLI reviewer was available. This review was produced
-  by Claude Code (same instance — not independent). Independence caveat applies.
-  To get cross-AI review, configure GEMINI_API_KEY and re-run /gsd-review 1.
+  Cross-AI run: `gemini` is on PATH but exits without review unless auth is configured
+  (~/.gemini/settings.json or GEMINI_API_KEY). Cursor CLI skipped when invoked from
+  Cursor agent (independence rule). Claude self-review block below is historical;
+  Composer supplemental documents the 2026-05-12 /gsd-review attempt.
+gemini_cli_last_attempt: "2026-05-12 — missing GEMINI_API_KEY / settings.json auth"
 ---
 
 # Cross-AI Plan Review — Phase 1: Foundation
 
-> **Independence caveat:** Gemini required `GEMINI_API_KEY` (not configured); Cursor has
-> no pipeable agent mode. This review is produced by the same Claude Code instance that
-> wrote the plans. It cannot catch blind spots that a different model would catch.
-> To get true cross-AI review, set `GEMINI_API_KEY` and re-run `/gsd-review 1`.
+> **Independence caveat:** `gemini` did not run — authentication missing (see **/gsd-review re-run** below). When invoked from Cursor, the `cursor` CLI is skipped by policy. Historical **Claude self-review** plus a short **Composer supplemental** pass are **not** substitutes for a second model. Configure `GEMINI_API_KEY` (or another reviewer CLI) and re-run `/gsd-review 1`.
 
 ---
 
@@ -121,7 +118,52 @@ To get true cross-AI review (recommended before execution):
 1. Set `GEMINI_API_KEY` in your shell or `.env`
 2. Re-run: `/gsd-review 1 --gemini`
 
-Key items to address before executing Phase 1:
-1. Fix SC-3 wording in ROADMAP.md Phase 1 success criteria
-2. Add `test_settings_default_app_version` to plan 02 spec
-3. Replace grep-based print test with pure Python in plan 03
+Key items from the original self-review pass were **addressed** (see **Replan log** above). Before execution, prefer a **authenticated** `/gsd-review` run for independent model coverage.
+
+---
+
+## Replan log (`/gsd-plan-phase 1 --reviews`)
+
+**Incorporated:** 2026-05-12 (Cursor orchestration)
+
+| Review / doc item | Resolution |
+|-------------------|------------|
+| SC-3 vs per-request logs | ROADMAP criterion 3 already scoped to lifecycle; Plan 05 verification echoes it |
+| `test_settings_default_app_version` | Plan 02 Task 2 — **Plan 01** stub list synced to 6 config tests, 12+ collected items |
+| pathlib `print()` scan | Plans 01 + 03 |
+| CORS `allow_credentials` inline comment | Plan 05 Task 1 + PATTERNS |
+| `test_openapi_json_version_matches_settings` | Plan 05 Task 2 |
+| structlog cache / suite ordering | Plan 03 — **autouse** `structlog.reset_defaults()` fixture added |
+| ROADMAP criterion 5 vs D-03 | **ROADMAP** amended — optional `.env`, no required env vars Phase 1 |
+| CONTEXT "no test suite" | **CONTEXT** phase boundary — Wave 0 minimal harness wording |
+
+Low-priority items (conftest guard assertion test, caplog assertion for `apifuse_startup`) left to executor discretion — not added as blocking plan tasks.
+
+---
+
+## `/gsd-review` re-run — 2026-05-12
+
+### CLI availability (orchestrator checks)
+
+| Reviewer | Result |
+|----------|--------|
+| `gemini` | On PATH; **`GEMINI_API_KEY` / auth not set** — CLI exits immediately with: `Please set an Auth method in your /home/darek/.gemini/settings.json OR specify GEMINI_API_KEY` |
+| `cursor` | **Skipped** (running inside Cursor agent — same-session review would not be independent) |
+| `claude`, `codex`, `opencode`, `qwen`, `coderabbit` | Not on PATH in this environment |
+| `ollama`, LM Studio | No local server responding on default ports |
+
+### Gemini CLI — blocked output
+
+```
+Please set an Auth method in your /home/darek/.gemini/settings.json OR specify GEMINI_API_KEY env variable file before running
+```
+
+### Composer (orchestrator) supplemental pass
+
+**Scope:** Plans 01–05 were re-read after prior `--reviews` incorporation; this is **not** a third-party model.
+
+- **Residual risk [LOW]:** Executor must still verify **middleware order** and **`configure_logging` before first `log.*`** under real `uvicorn` (plans describe it well; integration is where mistakes appear).
+- **Residual risk [LOW]:** `test_configure_logging_production_uses_json_renderer` criteria lean on implementation details (`bound_logger_cls`, root logger level) — if structlog internals shift, tests may need tuning without changing prod behavior.
+- **Alignment [OK]:** Earlier review themes (SC-3 / lifecycle logs, pathlib print scan, `app_version` test, CORS comment, OpenAPI version test, structlog autouse reset, ROADMAP criterion 5, CONTEXT test scope) appear **reflected** in the current plan set and ROADMAP/CONTEXT.
+
+**Verdict:** No new **HIGH/MEDIUM** gaps found vs. the already-merged replan; unblock **true** cross-AI review by fixing Gemini auth, or install another CLI (`claude`, `codex`, …) and re-run `/gsd-review 1 --codex` etc.
