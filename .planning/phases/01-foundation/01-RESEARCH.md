@@ -534,17 +534,19 @@ class ApifuseSettings(BaseSettings):
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 1 include a per-request logging middleware?**
    - What we know: The structlog contextvars pattern supports per-request binding (`request_id`, `method`, `path`)
    - What's unclear: CONTEXT.md doesn't mention it; success criteria don't require `request_id` in logs
    - Recommendation: Include a minimal `@app.middleware("http")` that calls `clear_contextvars()` + `bind_contextvars(request_id=uuid4())` to unblock Phase 2+ logging — adds ~10 lines, no dependencies
+   - **RESOLVED: Not included in Phase 1** — success criteria do not require `request_id` in logs; can be added in Phase 2 when provider logging context is needed.
 
 2. **Should `ApifuseSettings` be a module-level singleton or instantiated via `Depends()`?**
    - What we know: Claude's Discretion allows either; singleton is simpler for Phase 1
    - What's unclear: Phase 2 may want `Depends(get_settings)` for testability
    - Recommendation: Module-level singleton `apifuse_settings = ApifuseSettings()` for Phase 1; leave `get_settings()` helper as a thin wrapper for future `Depends()` injection
+   - **RESOLVED: Module-level singleton chosen** — `apifuse_settings = ApifuseSettings()` in `app/core/config.py`; thin `get_settings()` wrapper left for future `Depends()` injection.
 
 ---
 
