@@ -112,3 +112,25 @@ The `tests/` tree and pytest config are introduced by the Phase 1 plan set.
 ## Contributor shortcut
 
 **Clone of this repository:** install `uv`, then **`uv sync`** from the repo root. You do not need to re-run `uv init` or the `uv add` lines unless you are reproducing the stack from scratch or intentionally resetting the project metadata.
+
+### 7. WSL npm and nvm
+
+On  WSL
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+export NVM_DIR="/home/yourusername/.nvm" [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+nvm install node
+```
+
+### 8. Install GSD
+
+```bash
+npx get-shit-done-cc@latest
+```
+
+### 9. Run Claude
+
+```bash
+claude --dangerously-skip-permissions
+```
